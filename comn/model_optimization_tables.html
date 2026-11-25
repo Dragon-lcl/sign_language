@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型优化参数对比</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .table-container {
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .improvement {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .degradation {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .note {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>模型优化参数对比</h1>
+
+        <div class="section">
+            <h2>1. 优化器参数对比</h2>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th>优化器类型</th>
+                        <th>学习率</th>
+                        <th>动量参数</th>
+                        <th>收敛速度</th>
+                        <th>最终准确率</th>
+                    </tr>
+                    <tr>
+                        <td>SGD (优化前)</td>
+                        <td>0.1</td>
+                        <td>0.9</td>
+                        <td>慢</td>
+                        <td>85.2%</td>
+                    </tr>
+                    <tr>
+                        <td>SGD (优化后)</td>
+                        <td>0.01</td>
+                        <td>0.9</td>
+                        <td>中等</td>
+                        <td class="improvement">88.5%</td>
+                    </tr>
+                    <tr>
+                        <td>Adam (优化前)</td>
+                        <td>0.001</td>
+                        <td>β1=0.9, β2=0.999</td>
+                        <td>快</td>
+                        <td>87.8%</td>
+                    </tr>
+                    <tr>
+                        <td>Adam (优化后)</td>
+                        <td>0.0005</td>
+                        <td>β1=0.9, β2=0.999</td>
+                        <td>快</td>
+                        <td class="improvement">90.2%</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="note">
+                注：优化后的Adam优化器在准确率上表现最好，但SGD优化器在稳定性上表现更好。
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. 学习率策略对比</h2>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th>学习率策略</th>
+                        <th>初始学习率</th>
+                        <th>衰减方式</th>
+                        <th>预热周期</th>
+                        <th>收敛轮数</th>
+                        <th>最终准确率</th>
+                    </tr>
+                    <tr>
+                        <td>固定学习率</td>
+                        <td>0.01</td>
+                        <td>无</td>
+                        <td>无</td>
+                        <td>50</td>
+                        <td>85.5%</td>
+                    </tr>
+                    <tr>
+                        <td>指数衰减</td>
+                        <td>0.01</td>
+                        <td>0.9/epoch</td>
+                        <td>无</td>
+                        <td>35</td>
+                        <td class="improvement">88.2%</td>
+                    </tr>
+                    <tr>
+                        <td>余弦衰减</td>
+                        <td>0.01</td>
+                        <td>余弦函数</td>
+                        <td>无</td>
+                        <td>30</td>
+                        <td class="improvement">89.1%</td>
+                    </tr>
+                    <tr>
+                        <td>预热+余弦衰减</td>
+                        <td>0.01</td>
+                        <td>余弦函数</td>
+                        <td>10 epochs</td>
+                        <td>25</td>
+                        <td class="improvement">90.5%</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="note">
+                注：预热+余弦衰减的组合策略在收敛速度和最终准确率上都表现最好。
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. 迭代次数优化对比</h2>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th>训练策略</th>
+                        <th>最大迭代次数</th>
+                        <th>早停阈值</th>
+                        <th>实际迭代次数</th>
+                        <th>训练时间</th>
+                        <th>最终准确率</th>
+                        <th>过拟合程度</th>
+                    </tr>
+                    <tr>
+                        <td>固定迭代</td>
+                        <td>100</td>
+                        <td>无</td>
+                        <td>100</td>
+                        <td>120min</td>
+                        <td>87.5%</td>
+                        <td>高</td>
+                    </tr>
+                    <tr>
+                        <td>简单早停</td>
+                        <td>100</td>
+                        <td>5 epochs</td>
+                        <td>45</td>
+                        <td>54min</td>
+                        <td class="improvement">88.2%</td>
+                        <td>中等</td>
+                    </tr>
+                    <tr>
+                        <td>验证集早停</td>
+                        <td>100</td>
+                        <td>3 epochs</td>
+                        <td>35</td>
+                        <td>42min</td>
+                        <td class="improvement">89.5%</td>
+                        <td>低</td>
+                    </tr>
+                    <tr>
+                        <td>动态早停</td>
+                        <td>100</td>
+                        <td>自适应</td>
+                        <td>30</td>
+                        <td>36min</td>
+                        <td class="improvement">90.2%</td>
+                        <td>很低</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="note">
+                注：动态早停策略在训练效率、模型性能和过拟合控制上都表现最好。
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. 综合优化效果对比</h2>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th>优化项目</th>
+                        <th>优化前</th>
+                        <th>优化后</th>
+                        <th>提升幅度</th>
+                    </tr>
+                    <tr>
+                        <td>模型准确率</td>
+                        <td>85.2%</td>
+                        <td class="improvement">90.5%</td>
+                        <td class="improvement">+5.3%</td>
+                    </tr>
+                    <tr>
+                        <td>训练时间</td>
+                        <td>120min</td>
+                        <td class="improvement">36min</td>
+                        <td class="improvement">-70%</td>
+                    </tr>
+                    <tr>
+                        <td>内存占用</td>
+                        <td>4.2GB</td>
+                        <td class="improvement">2.8GB</td>
+                        <td class="improvement">-33.3%</td>
+                    </tr>
+                    <tr>
+                        <td>推理速度</td>
+                        <td>50ms/帧</td>
+                        <td class="improvement">35ms/帧</td>
+                        <td class="improvement">-30%</td>
+                    </tr>
+                    <tr>
+                        <td>过拟合程度</td>
+                        <td>高</td>
+                        <td class="improvement">很低</td>
+                        <td class="improvement">显著改善</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="note">
+                注：综合优化后，模型在准确率、训练效率、资源占用和泛化能力等方面都有显著提升。
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

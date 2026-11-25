@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手语识别系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script type="module">
+        // @ts-ignore
+        import { yiyu } from "https://avatar.gbqr.net/yiyu.js";
+        window.yiyu = yiyu;
+        
+        // 手语数字人初始化
+        // 数字人 SDK 需要使用者自行申请凭据（token）后填入下方 YIYU_SDK_TOKEN，
+        // 未配置时仅显示提示，不影响识别功能。
+        const YIYU_SDK_TOKEN = '';
+        window.yiyuTokenReady = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('avatar-container');
+            if (!YIYU_SDK_TOKEN) {
+                if (container) {
+                    container.innerHTML =
+                        '<div class="alert alert-info">手语数字人未启用：请先申请 yiyu SDK token 并填入 YIYU_SDK_TOKEN。</div>';
+                }
+                return;
+            }
+            try {
+                const avatarDiv = document.createElement('div');
+                avatarDiv.id = 'yiyu-avatar';
+                container.appendChild(avatarDiv);
+
+                yiyu.init({
+                    name: YIYU_SDK_TOKEN,
+                    readLocalResource: false
+                });
+                window.yiyuTokenReady = true;
+
+                window.addEventListener('yiyu:ready', function() {
+                    console.log('手语数字人初始化成功！');
+                });
+                window.addEventListener('yiyu:error', function(event) {
+                    console.error('手语数字人初始化失败:', event.detail);
+                    container.innerHTML =
+                        '<div class="alert alert-warning">手语数字人初始化失败: ' + event.detail + '</div>';
+                });
+            } catch (error) {
+                console.error('初始化过程中发生错误:', error);
+                container.innerHTML =
+                    '<div class="alert alert-warning">初始化错误: ' + error.message + '</div>';
+            }
+        });
+
+        // 翻译文本函数
+        window.translateText = function() {
+            const text = document.getElementById('text-input').value;
+            console.log('开始翻译文本:', text);
+            
+            if (!text) {
+                console.warn('请输入要翻译的文本');
+                return;
+            }
+            if (!YIYU_SDK_TOKEN || !window.yiyuTokenReady) {
+                alert('手语数字人未启用：请先配置 YIYU_SDK_TOKEN。');
+                return;
+            }
+
+            try {
+                yiyu.startTranslate(text);
+                console.log('翻译请求已发送');
+            } catch (error) {
+                console.error('翻译过程中发生错误:', error);
+                alert('翻译失败: ' + error.message);
+            }
+        };
+
+        // 检查SDK是否加载成功
+        function checkSDK() {
+            if (!YIYU_SDK_TOKEN) {
+                return false;  // 未配置 token，已显示提示，不再覆盖
+            }
+            if (typeof yiyu === 'undefined') {
+                console.error('SDK未加载成功');
+                document.getElementById('avatar-container').innerHTML = 
+                    '<div class="alert alert-warning">SDK加载失败，请检查网络连接</div>';
+                return false;
+            }
+            return true;
+        }
+
+        // 定期检查SDK状态
+        setInterval(checkSDK, 5000);
+    </script>
+    <style>
+        .hero-section {
+            background: url('/static/image/2.jpg') center/cover no-repeat;
+            color: white;
+            padding: 180px 0;
+            margin-bottom: 50px;
+        }
+        .feature-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #6a11cb;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        #avatar-container {
+            width: 100%;
+            height: 400px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        #avatar-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .tech-image {
+            max-width: 400px;
+            max-height: 300px;
+            width: 100%;
+            object-fit: contain;
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">手语识别系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/image_recognition">图像识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/video_recognition">视频识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/realtime_recognition">实时识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄区域 -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-4">基于YOLOv8和OpenPose的手语识别系统</h1>
+            <p class="lead mb-5">利用先进的计算机视觉技术，实现实时、精准的手语动作识别，帮助聋哑人与健听人之间实现无障碍交流。</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/image_recognition" class="btn btn-light btn-lg px-4">开始识别</a>
+                <a href="/about" class="btn btn-outline-light btn-lg px-4">了解更多</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功能特点 -->
+    <section class="container mb-5">
+        <h2 class="text-center mb-5">主要功能</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card feature-card p-4">
+                    <div class="card-body text-center">
+                        <i class="bi bi-image feature-icon"></i>
+                        <h3 class="card-title">图像手语识别</h3>
+                        <p class="card-text">上传图像，识别静态图像中的手语动作，快速获取翻译结果。</p>
+                        <a href="/image_recognition" class="btn btn-primary mt-3">立即体验</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card feature-card p-4">
+                    <div class="card-body text-center">
+                        <i class="bi bi-film feature-icon"></i>
+                        <h3 class="card-title">视频手语识别</h3>
+                        <p class="card-text">上传视频，分析视频中的手语动作序列，获取完整的翻译内容。</p>
+                        <a href="/video_recognition" class="btn btn-primary mt-3">立即体验</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card feature-card p-4">
+                    <div class="card-body text-center">
+                        <i class="bi bi-camera-video feature-icon"></i>
+                        <h3 class="card-title">实时手语识别</h3>
+                        <p class="card-text">通过摄像头实时捕捉并识别手语动作，实现即时交流。</p>
+                        <a href="/realtime_recognition" class="btn btn-primary mt-3">立即体验</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card feature-card p-4">
+                    <div class="card-body text-center">
+                        <i class="bi bi-translate feature-icon"></i>
+                        <h3 class="card-title">文字转手语</h3>
+                        <p class="card-text">输入文字内容，通过AI数字人将其转换为标准手语动作展示。</p>
+                        <a href="#avatar-section" class="btn btn-primary mt-3">立即体验</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 手语数字人展示区域 -->
+    <section id="avatar-section" class="container mb-5">
+        <h2 class="text-center mb-4">手语数字人演示</h2>
+        <div id="avatar-container">
+            <div id="avatar-controls">
+                <input type="text" id="text-input" class="form-control" placeholder="输入要翻译的文本">
+                <button class="btn btn-primary" onclick="translateText()">翻译</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术架构 -->
+    <section class="container mb-5">
+        <h2 class="text-center mb-5">核心技术</h2>
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h3>YOLOv8</h3>
+                <p>YOLOv8是一种先进的目标检测和姿态估计算法，能够快速、准确地检测图像中的人体和手部，并提取关键点信息。在手语识别中，YOLOv8可以实时跟踪手部动作，为后续的手语识别提供基础。</p>
+            </div>
+            <div class="col-md-6">
+                <img src="/image/yolov8.jpg" alt="YOLOv8示例" class="img-fluid rounded shadow tech-image">
+            </div>
+        </div>
+        <div class="row align-items-center mt-5">
+            <div class="col-md-6 order-md-2">
+                <h3>OpenPose</h3>
+                <p>OpenPose是一种实时多人关键点检测库，能够同时检测人体、手部、面部和脚部的关键点。在手语识别中，OpenPose可以精确捕捉手指和手腕的细微动作，提高手语识别的准确性。使用了pose_iter_440000.caffemodel作为身体姿态模型，pose_iter_102000.caffemodel作为手部关键点检测模型。</p>
+            </div>
+            <div class="col-md-6 order-md-1">
+                <img src="/static/image/image.png" alt="OpenPose手部关键点示意图" class="img-fluid rounded shadow tech-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- 应用场景 -->
+    <section class="container mb-5">
+        <h2 class="text-center mb-5">应用场景</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">公共服务</h5>
+                        <p class="card-text">在机场、车站、医院等公共场所，通过实时翻译手语动作，为聋哑人提供更便捷的服务。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">教育培训</h5>
+                        <p class="card-text">在手语教学中，提供实时反馈和评估，帮助学习者更快掌握手语。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">远程医疗</h5>
+                        <p class="card-text">在远程医疗中，帮助聋哑患者与医生进行无障碍沟通，提高医疗服务质量。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">日常交流</h5>
+                        <p class="card-text">在日常生活中，帮助聋哑人与健听人之间实现无障碍交流，提高生活质量。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>手语识别系统</h5>
+                    <p>基于YOLOv8和OpenPose的手语动作识别系统，旨在提升手语交流效能，优化社会服务与管理。</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>功能</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/image_recognition" class="text-white">图像识别</a></li>
+                        <li><a href="/video_recognition" class="text-white">视频识别</a></li>
+                        <li><a href="/realtime_recognition" class="text-white">实时识别</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>关于</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/about" class="text-white">关于我们</a></li>
+                        <li><a href="#" class="text-white">联系我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2026 手语识别系统 · 开源项目</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

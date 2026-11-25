@@ -1,0 +1,128 @@
+# 手语识别系统配置文件
+
+# 模型配置
+models:
+  # YOLOv8配置
+  yolo:
+    # 相对项目根目录；也可用 SIGN_LANGUAGE_ASSETS_DIR 指向外部资源目录
+    model_path: "models/yolo/exp/weights/best.pt"
+    confidence_threshold: 0.5
+    iou_threshold: 0.45
+    num_classes: 35  # 更新为data.yaml中的类别数量
+    
+  # OpenPose配置
+  openpose:
+    model_path: "models/openpose/pose_iter_440000.caffemodel"
+    proto_path: "models/openpose/pose_deploy_linevec.prototxt"
+    hand_model_path: "models/caffe_models/hand/pose_iter_102000.caffemodel"
+    hand_proto_path: "models/openpose/hand_pose_deploy.prototxt"
+    
+# 数据处理配置
+data:
+  image_size: [640, 640]  # 输入图像大小
+  normalize: true  # 是否归一化图像
+  dataset_path: "data/gesture_image"  # 数据集根目录（相对项目根，可通过 SIGN_LANGUAGE_ASSETS_DIR 覆盖）
+  train_path: "images/train"  # 训练集图片相对路径
+  val_path: "images/val"  # 验证集图片相对路径
+  
+# 手语识别配置
+recognition:
+  # 手语词汇表路径
+  vocabulary_path: "data/vocabulary.json"
+  # 特征提取方法: "keypoints", "heatmap", "combined"
+  feature_method: "keypoints"
+  # 分类模型: "svm", "lstm", "cnn"
+  classifier: "lstm"
+  # 时序长度（对视频和实时识别）
+  sequence_length: 35
+  # 类别名称映射
+  class_names:
+    0: 时间/时候
+    1: 你
+    2: 早上
+    3: 9
+    4: 0
+    5: 快乐/高兴
+    6: 新
+    7: 祝
+    8: 请
+    9: 路
+    10: 生日
+    11: 平
+    12: 安
+    13: 朋友
+    14: 8
+    15: 认识
+    16: 名片
+    17: 结婚/妻子
+    18: 茶
+    19: 有
+    20: 花
+    21: 今天
+    22: 门
+    23: 停
+    24: 谢谢
+    25: 慢
+    26: 走
+    27: 晚
+    28: 我
+    29: 爱
+    30: 好
+    31: 人
+    32: 什么
+    33: 名字
+    34: 介绍
+  
+# 应用配置
+app:
+  host: "0.0.0.0"
+  port: 5000
+  debug: true
+  # 摄像头ID，通常0是默认摄像头
+  camera_id: 0
+  # 视频处理帧率
+  fps: 30
+
+# 类别名称列表（与class_names保持一致）
+names:
+  - 时间
+  - 你
+  - 早上
+  - 9
+  - 0
+  - 快乐
+  - 新
+  - 祝
+  - 请
+  - 路
+  - 生日
+  - 平
+  - 安
+  - 朋友
+  - 8
+  - 认识
+  - 名片
+  - 结婚
+  - 茶
+  - 有
+  - 花
+  - 今天
+  - 门
+  - 停
+  - 谢谢
+  - 慢
+  - 走
+  - 晚
+  - 我
+  - 爱
+  - 好
+  - 人
+  - 什么
+  - 名字
+  - 介绍
+
+# 摄像头配置
+camera:
+  width: 640
+  height: 480
+  fps: 30 

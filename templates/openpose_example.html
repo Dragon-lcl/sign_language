@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenPose示例</title>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .image-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px auto;
+        }
+        .image-box {
+            flex: 1;
+            margin: 0 10px;
+            max-width: 500px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            display: block;
+            margin: 0 auto;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OpenPose示例</h1>
+        <div class="image-container">
+            <div class="image-box">
+                <h2>原始图片</h2>
+                <img src="/static/image/image.png" alt="原始图片" id="original-image">
+            </div>
+            <div class="image-box">
+                <h2>处理后的图片</h2>
+                <img src="" alt="处理后的图片" id="processed-image" style="display: none;">
+                <div id="error-message" class="error"></div>
+            </div>
+        </div>
+        <button onclick="processImage()" style="padding: 10px 20px; font-size: 16px; margin-top: 20px;">处理图片</button>
+    </div>
+
+    <script>
+        function processImage() {
+            // 显示加载状态
+            document.getElementById('error-message').textContent = '处理中...';
+            document.getElementById('processed-image').style.display = 'none';
+
+            fetch('/api/process_example_image')
+                .then(response => {
+                    if (!response.ok) {
+                        // 如果响应状态不是200-299之间，抛出错误
+                        return response.json().then(err => {
+                            throw new Error(err.error || '请求失败');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('error-message').textContent = data.error;
+                        document.getElementById('processed-image').style.display = 'none';
+                    } else {
+                        // 添加时间戳以避免浏览器缓存
+                        const timestamp = new Date().getTime();
+                        document.getElementById('processed-image').src = data.image_url + '?t=' + timestamp;
+                        document.getElementById('processed-image').style.display = 'block';
+                        document.getElementById('error-message').textContent = '';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('error-message').textContent = '处理图片时出错: ' + error.message;
+                    document.getElementById('processed-image').style.display = 'none';
+                });
+        }
+    </script>
+</body>
+</html> 

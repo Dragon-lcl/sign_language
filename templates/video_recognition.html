@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频手语识别 - 手语识别系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #6a11cb;
+            background-color: #f8f9fa;
+        }
+        .upload-icon {
+            font-size: 3rem;
+            color: #6a11cb;
+            margin-bottom: 15px;
+        }
+        .result-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        #loading {
+            display: none;
+        }
+        #result {
+            display: none;
+        }
+        .prediction-item {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+        .prediction-item:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">手语识别系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/image_recognition">图像识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/video_recognition">视频识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/realtime_recognition">实时识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面标题 -->
+    <header class="page-header">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">视频手语识别</h1>
+            <p class="lead">上传视频，分析视频中的手语动作序列，获取完整的翻译内容。</p>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <!-- 上传区域 -->
+                <div class="upload-area mb-4" id="uploadArea">
+                    <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                    <h3>拖放视频或点击上传</h3>
+                    <p class="text-muted">支持 MP4, AVI, MOV 格式</p>
+                    <input type="file" id="fileInput" accept="video/*" style="display: none;">
+                </div>
+
+                <!-- 加载中 -->
+                <div id="loading" class="text-center my-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-3">正在处理视频并识别手语，这可能需要一些时间，请耐心等待...</p>
+                    <div class="progress mt-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <!-- 识别结果 -->
+                <div id="result" class="mt-5">
+                    <div class="card result-card">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">识别结果</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>处理后的视频</h5>
+                                    <video id="resultVideo" controls class="img-fluid rounded mb-3">
+                                        您的浏览器不支持视频标签。
+                                    </video>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="card-title">最终翻译结果</h5>
+                                    <div class="alert alert-success">
+                                        <p id="finalPrediction" class="fs-4 fw-bold mb-2"></p>
+                                        <div class="progress mb-2">
+                                            <div id="confidenceBar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                        <p class="mb-0">置信度: <span id="confidence">0%</span></p>
+                                    </div>
+                                    
+                                    <h5 class="mt-4">详细识别结果</h5>
+                                    <div class="mt-3" style="max-height: 300px; overflow-y: auto;">
+                                        <div id="predictionsContainer"></div>
+                                    </div>
+                                    
+                                    <button class="btn btn-primary mt-3" onclick="uploadNewVideo()">上传新视频</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>手语识别系统</h5>
+                    <p>基于YOLOv8和OpenPose的手语动作识别系统，旨在提升手语交流效能，优化社会服务与管理。</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>功能</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/image_recognition" class="text-white">图像识别</a></li>
+                        <li><a href="/video_recognition" class="text-white">视频识别</a></li>
+                        <li><a href="/realtime_recognition" class="text-white">实时识别</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>关于</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/about" class="text-white">关于我们</a></li>
+                        <li><a href="#" class="text-white">联系我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 手语识别系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 上传区域点击事件
+        document.getElementById('uploadArea').addEventListener('click', function() {
+            document.getElementById('fileInput').click();
+        });
+
+        // 文件选择事件
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                uploadVideo(e.target.files[0]);
+            }
+        });
+
+        // 拖放事件
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('bg-light');
+        });
+        
+        uploadArea.addEventListener('dragleave', function() {
+            uploadArea.classList.remove('bg-light');
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('bg-light');
+            
+            if (e.dataTransfer.files.length > 0) {
+                uploadVideo(e.dataTransfer.files[0]);
+            }
+        });
+
+        // 上传视频
+        function uploadVideo(file) {
+            // 检查文件类型
+            if (!file.type.match('video.*')) {
+                alert('请上传视频文件');
+                return;
+            }
+            
+            // 显示加载中
+            document.getElementById('uploadArea').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            // 创建FormData
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // 发送请求
+            fetch('/api/recognize_video', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || '识别失败');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 显示结果
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+                
+                // 设置视频
+                document.getElementById('resultVideo').src = data.video_url;
+                
+                // 设置最终预测结果
+                document.getElementById('finalPrediction').textContent = data.final_prediction;
+                
+                const confidence = (data.confidence * 100).toFixed(2);
+                document.getElementById('confidence').textContent = confidence + '%';
+                document.getElementById('confidenceBar').style.width = confidence + '%';
+                
+                // 设置进度条颜色
+                const confidenceBar = document.getElementById('confidenceBar');
+                if (data.confidence >= 0.7) {
+                    confidenceBar.className = 'progress-bar bg-success';
+                } else if (data.confidence >= 0.4) {
+                    confidenceBar.className = 'progress-bar bg-warning';
+                } else {
+                    confidenceBar.className = 'progress-bar bg-danger';
+                }
+                
+                // 显示详细预测结果
+                const predictionsContainer = document.getElementById('predictionsContainer');
+                predictionsContainer.innerHTML = '';
+                
+                // 获取所有预测结果
+                const predictions = data.predictions;
+                const predictionCounts = {};
+                
+                // 统计每个预测结果的出现次数
+                predictions.forEach(pred => {
+                    if (predictionCounts[pred.prediction]) {
+                        predictionCounts[pred.prediction]++;
+                    } else {
+                        predictionCounts[pred.prediction] = 1;
+                    }
+                });
+                
+                // 显示前10个预测结果
+                const maxPredictions = 10;
+                const displayPredictions = predictions.slice(0, Math.min(predictions.length, maxPredictions));
+                
+                displayPredictions.forEach(pred => {
+                    const predItem = document.createElement('div');
+                    predItem.className = 'prediction-item';
+                    
+                    const probability = (pred.probability * 100).toFixed(2);
+                    let bgColor = 'bg-success';
+                    if (pred.probability < 0.7 && pred.probability >= 0.4) {
+                        bgColor = 'bg-warning';
+                    } else if (pred.probability < 0.4) {
+                        bgColor = 'bg-danger';
+                    }
+                    
+                    predItem.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>帧 ${pred.frame}: <strong>${pred.prediction}</strong></span>
+                            <span>${probability}%</span>
+                        </div>
+                        <div class="progress mt-1" style="height: 5px;">
+                            <div class="progress-bar ${bgColor}" role="progressbar" style="width: ${probability}%"></div>
+                        </div>
+                    `;
+                    
+                    predictionsContainer.appendChild(predItem);
+                });
+                
+                // 如果有更多预测结果，显示省略号
+                if (predictions.length > maxPredictions) {
+                    const moreItem = document.createElement('div');
+                    moreItem.className = 'text-center mt-2';
+                    moreItem.textContent = `... 还有 ${predictions.length - maxPredictions} 个预测结果`;
+                    predictionsContainer.appendChild(moreItem);
+                }
+            })
+            .catch(error => {
+                // 显示错误
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('uploadArea').style.display = 'block';
+                alert(error.message);
+            });
+        }
+
+        // 上传新视频
+        function uploadNewVideo() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('uploadArea').style.display = 'block';
+            document.getElementById('fileInput').value = '';
+        }
+    </script>
+</body>
+</html> 

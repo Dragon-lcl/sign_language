@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时手语识别 - 手语识别系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+        .video-container {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .video-feed {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .control-panel {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">手语识别系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/image_recognition">图像识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/video_recognition">视频识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/realtime_recognition">实时识别</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面标题 -->
+    <header class="page-header">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">实时手语识别</h1>
+            <p class="lead">通过摄像头实时捕捉并识别手语动作，实现即时交流。</p>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container mb-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- 视频区域 -->
+                <div class="video-container mb-4">
+                    <img src="{{ url_for('video_feed') }}" class="video-feed" alt="实时视频流">
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <!-- 控制面板 -->
+                <div class="control-panel">
+                    <h3 class="mb-4">控制面板</h3>
+                    
+                    <!-- 检测器选择 -->
+                    <div class="mb-4">
+                        <h5>检测器选择</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="detector" id="yoloDetector" value="yolo" checked>
+                            <label class="form-check-label" for="yoloDetector">
+                                YOLOv8 检测器
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="detector" id="openposeDetector" value="openpose">
+                            <label class="form-check-label" for="openposeDetector">
+                                OpenPose 检测器
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="switchDetectorBtn">切换检测器</button>
+                        <button class="btn btn-success" id="startRecordingBtn">开始录制</button>
+                        <button class="btn btn-danger" id="stopRecordingBtn" disabled>停止录制</button>
+                    </div>
+                    
+                    <!-- 提示信息 -->
+                    <div class="alert alert-info mt-4">
+                        <h5>使用提示</h5>
+                        <ul>
+                            <li>确保摄像头正常工作</li>
+                            <li>保持良好的光线条件</li>
+                            <li>手语动作应在摄像头视野内</li>
+                            <li>尝试不同的检测器以获得最佳效果</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>手语识别系统</h5>
+                    <p>基于YOLOv8和OpenPose的手语动作识别系统，旨在提升手语交流效能，优化社会服务与管理。</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>功能</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/image_recognition" class="text-white">图像识别</a></li>
+                        <li><a href="/video_recognition" class="text-white">视频识别</a></li>
+                        <li><a href="/realtime_recognition" class="text-white">实时识别</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>关于</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/about" class="text-white">关于我们</a></li>
+                        <li><a href="#" class="text-white">联系我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 手语识别系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 切换检测器
+        document.getElementById('switchDetectorBtn').addEventListener('click', function() {
+            const detectorType = document.querySelector('input[name="detector"]:checked').value;
+            
+            // 显示加载中
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 切换中...';
+            
+            // 发送请求
+            fetch('/api/switch_detector', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ detector_type: detectorType })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || '切换检测器失败');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 切换成功
+                alert(`已切换到 ${detectorType === 'yolo' ? 'YOLOv8' : 'OpenPose'} 检测器`);
+                
+                // 刷新视频流
+                const videoFeed = document.querySelector('.video-feed');
+                const src = videoFeed.src;
+                videoFeed.src = '';
+                setTimeout(() => {
+                    videoFeed.src = src;
+                }, 500);
+            })
+            .catch(error => {
+                // 显示错误
+                alert(error.message);
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                this.disabled = false;
+                this.innerHTML = '切换检测器';
+            });
+        });
+        
+        // 录制功能
+        let mediaRecorder;
+        let recordedChunks = [];
+        
+        document.getElementById('startRecordingBtn').addEventListener('click', function() {
+            // 获取视频流
+            const videoFeed = document.querySelector('.video-feed');
+            
+            // 创建Canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = videoFeed.clientWidth;
+            canvas.height = videoFeed.clientHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // 开始录制
+            recordedChunks = [];
+            const stream = canvas.captureStream(30);
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            
+            mediaRecorder.ondataavailable = function(e) {
+                if (e.data.size > 0) {
+                    recordedChunks.push(e.data);
+                }
+            };
+            
+            mediaRecorder.onstop = function() {
+                // 创建Blob
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                
+                // 创建下载链接
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sign_language_recording.webm';
+                a.click();
+                
+                // 释放URL
+                URL.revokeObjectURL(url);
+            };
+            
+            // 开始录制
+            mediaRecorder.start();
+            
+            // 定时绘制视频帧
+            const drawFrame = () => {
+                if (mediaRecorder.state === 'recording') {
+                    ctx.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+                    requestAnimationFrame(drawFrame);
+                }
+            };
+            
+            drawFrame();
+            
+            // 更新按钮状态
+            this.disabled = true;
+            document.getElementById('stopRecordingBtn').disabled = false;
+        });
+        
+        document.getElementById('stopRecordingBtn').addEventListener('click', function() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            
+            // 更新按钮状态
+            this.disabled = true;
+            document.getElementById('startRecordingBtn').disabled = false;
+        });
+    </script>
+</body>
+</html> 
